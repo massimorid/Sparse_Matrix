@@ -1,7 +1,25 @@
+cmake_minimum_required(VERSION 3.10)
+project(SparseMatrix)
 
-# Look for headers in the include directory
-include_directories(${CMAKE_SOURCE_DIR}/include)
-add_library(some_library SHARED some_library.cpp)
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
 
-# You can also add any stand alone executables
-# add_executable(example main.cpp) # Will make a binary called "example" inside build/bin using main.cpp
+# Include directories
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# Add source files and create the SparseMatrix library
+add_library(SparseMatrix
+    src/matrix_foundation.cpp
+    src/conversion.cpp
+    src/utilities.cpp
+)
+
+# Add test executable
+add_executable(SparseMatrixTests
+    tests/test_sparse_matrix.cpp
+)
+
+# Link the test executable with SparseMatrix library and GoogleTest
+target_link_libraries(SparseMatrixTests
+    PRIVATE SparseMatrix GTest::gtest_main pthread
+)

@@ -1,5 +1,5 @@
 # Every CMake project needs to start with these two lines
-cmake_minimum_required(VERSION 3.28) # This is the minimum version of CMake required
+cmake_minimum_required(VERSION 3.22) # This is the minimum version of CMake required
 project(Homework VERSION 1.0) # This is the name of the project and its version
 set(PROJECT_AUTHOR "Your Name") # This is the author of the project
 
