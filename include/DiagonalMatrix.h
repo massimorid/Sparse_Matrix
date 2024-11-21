@@ -11,7 +11,8 @@ private:
     int size;
 
 public:
-    DiagonalMatrix(const std::vector<double>& diagonal);
+    explicit DiagonalMatrix(const std::vector<double>& diagonal);
+    explicit DiagonalMatrix(const std::vector<std::vector<double>>& denseMatrix);
 
     SparseMatrix* convertTo(const std::string& format) const override;
     void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
