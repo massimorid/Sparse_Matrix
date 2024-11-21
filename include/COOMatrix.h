@@ -15,16 +15,16 @@ private:
 public:
     COOMatrix(const std::vector<double>& values, const std::vector<int>& rowIndices,
               const std::vector<int>& colIndices, int rows, int cols);
+    explicit COOMatrix(const std::vector<std::vector<double>>& denseMatrix);
 
     SparseMatrix* convertTo(const std::string& format) const override;
     void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
     void transpose() override;
     std::pair<int, int> getShape() const override;
     int getNNZ() const override;
-
-    void sortIndices();
 };
 
 } // namespace sparsematrix
 
 #endif // COOMATRIX_H
+
