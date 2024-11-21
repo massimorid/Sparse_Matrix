@@ -1,7 +1,7 @@
 #include "SparseMatrix.h"
 #include "CSRMatrix.h"
-#include "CSCMatrix.h"
 #include "COOMatrix.h"
+#include "CSCMatrix.h"
 #include "DiagonalMatrix.h"
 #include <stdexcept>
 
@@ -22,3 +22,4 @@ SparseMatrix* SparseMatrix::fromDense(const std::vector<std::vector<double>>& de
 }
 
 } // namespace sparsematrix
+
