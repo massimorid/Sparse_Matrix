@@ -15,6 +15,7 @@ private:
 public:
     CSCMatrix(const std::vector<double>& values, const std::vector<int>& rowIndices,
               const std::vector<int>& colPointers, int rows, int cols);
+    explicit CSCMatrix(const std::vector<std::vector<double>>& denseMatrix);
 
     SparseMatrix* convertTo(const std::string& format) const override;
     void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
@@ -26,3 +27,4 @@ public:
 } // namespace sparsematrix
 
 #endif // CSCMATRIX_H
+
