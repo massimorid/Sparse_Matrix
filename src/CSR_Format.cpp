@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <tuple>
-
+#include <fstream>
 using namespace std;
 
 const int rows = 3;
@@ -13,7 +12,7 @@ int matrix[3][4] = {
     {0, 3, 6, 0}
 };
 
-void printMatrix(int (&matrix)[rows][columns]) { // this is the function to print the dense matirex
+void printMatrix(int (&matrix)[rows][columns]) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < columns; j++) {
             cout << matrix[i][j] << " ";
@@ -22,47 +21,48 @@ void printMatrix(int (&matrix)[rows][columns]) { // this is the function to prin
     }
 }
 
-
-tuple<vector<int>, vector<int>, vector<int>> formatConversionCSC(int (&matrix)[rows][columns]) { // here you convert matrix to CSC format
+tuple <vector<int>, vector<int>, vector<int>> formatConversionCSR(int (&matrix)[rows][columns]){
     vector<int> vals;
-    vector<int> row_indices;
-    vector<int> col_ptr(columns + 1, 0); // init with zero, +1 for the extra column pointer
+    vector<int> cols;
+    vector<int> row_pointer;
 
-   
-    for (int col = 0; col < columns; ++col) { // do an iteration by column first
-        for (int row = 0; row < rows; ++row) {
-            if (matrix[row][col] != 0) {
-                vals.push_back(matrix[row][col]);  // stire the non-zero value
-                row_indices.push_back(row);       // store the row index
+    bool isFirst = true;
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            if (matrix[i][j] != 0){
+                vals.push_back(matrix[i][j]);
+                cols.push_back(j);
+                
+                if (isFirst){
+                    row_pointer.push_back(matrix[i][j]);
+                    isFirst = false;
+                    }}
             }
+        isFirst = true;
         }
-        col_ptr[col + 1] = vals.size(); // point to the start of the next column
-    }
-
-    return {vals, row_indices, col_ptr};
+    return {vals, cols, row_pointer};
 }
 
+
 int main() {
-    cout << "the matrix:" << endl;
-    printMatrix(matrix);
+    cout << "The matrix:" << endl;
+    printMatrix(matrix); 
 
- 
-    auto [vals, row_indices, col_ptr] = formatConversionCSC(matrix);   // convert to CSC format
 
-    cout << "\nnon-zero values (vals): "; // csc representation
+    auto [vals, cols, row_pointer] = formatConversionCSR(matrix);
+
+    cout << "\nNon-zero values: ";
     for (int v : vals) {
         cout << v << " ";
     }
-
-    cout << "\nrow indices (rows): ";
-    for (int r : row_indices) {
-        cout << r << " ";
-    }
-
-    cout << "\ncolumn pointers (col_ptr): ";
-    for (int c : col_ptr) {
+    cout << "\nColumn indices: ";
+    for (int c : cols) {
         cout << c << " ";
     }
 
-    return 0;
-}
+    cout << "\nRow Pointer: ";
+    for (int r : row_pointer) {
+        cout << r << " ";
+    }
+    return 0;}
