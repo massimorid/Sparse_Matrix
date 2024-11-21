@@ -15,14 +15,13 @@ private:
 public:
     CSRMatrix(const std::vector<double>& values, const std::vector<int>& colIndices,
               const std::vector<int>& rowPointers, int rows, int cols);
+    explicit CSRMatrix(const std::vector<std::vector<double>>& denseMatrix);
 
     SparseMatrix* convertTo(const std::string& format) const override;
     void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
     void transpose() override;
     std::pair<int, int> getShape() const override;
     int getNNZ() const override;
-
-    std::vector<double> dot(const std::vector<double>& vector) const;
 };
 
 } // namespace sparsematrix
