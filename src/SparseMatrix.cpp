@@ -1,3 +1,6 @@
+// fromDense: Implements the factory method to create a sparse matrix from a dense matrix based on the specified format.
+
+
 #include "SparseMatrix.h"
 #include "CSRMatrix.h"
 #include "COOMatrix.h"
@@ -22,4 +25,3 @@ SparseMatrix* SparseMatrix::fromDense(const std::vector<std::vector<double>>& de
 }
 
 } // namespace sparsematrix
-

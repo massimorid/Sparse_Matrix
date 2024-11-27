@@ -1,3 +1,18 @@
+# Include FetchContent module
+include(FetchContent)
+
+# Fetch Google Test
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.15.2
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Include Google Test
+include(GoogleTest)
+
 # Add the SparseMatrixTests executable
 add_executable(SPARSE_MATRIX_TESTS
     test_sparse_matrix.cpp
@@ -7,14 +22,17 @@ add_executable(SPARSE_MATRIX_TESTS
     test_diagonal_matrix.cpp
 )
 
-# Link the SPARSE_MATRIX library to the test executable
-target_link_libraries(SPARSE_MATRIX_TESTS SPARSE_MATRIX gtest gtest_main)
+# Set C++ standard for the test executable
+set_target_properties(SPARSE_MATRIX_TESTS PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED YES)
 
-# Specify additional directories if needed for tests
-target_include_directories(SPARSE_MATRIX_TESTS PUBLIC ${CMAKE_SOURCE_DIR}/include)
+# Make all targets in this directory look for headers here
+include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include)
+
+# Link the SPARSE_MATRIX library and Google Test to the test executable
+target_link_libraries(SPARSE_MATRIX_TESTS SPARSE_MATRIX GTest::gtest_main)
 
 # Enable testing
 enable_testing()
 
-# Add the test executable to the list of tests
-add_test(NAME SparseMatrixTests COMMAND SPARSE_MATRIX_TESTS)
+# Discover and register tests
+gtest_discover_tests(SPARSE_MATRIX_TESTS)

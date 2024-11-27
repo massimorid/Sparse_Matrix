@@ -1,7 +1,7 @@
 find_package(Doxygen REQUIRED)
 
 # Directories to look for header files (.h) for the documentation
-set(DOXYGEN_INCLUDE_PATHS ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/homework ${CMAKE_SOURCE_DIR}/include)
+set(DOXYGEN_INCLUDE_PATHS ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/tests)
 # These variables will be used to configure Doxyfile.in into the final Doxyfile
 string(REPLACE ";" " " DOXYGEN_INPUT_DIR "${DOXYGEN_INCLUDE_PATHS}")
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
@@ -17,7 +17,7 @@ configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 # Doxygen won't create this for us
 file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR}/xml)
 # Glob all .h files inside the directories listed in DOXYGEN_INCLUDE_DIRS to set them as dependencies
-# for recomplation of the documentation
+# for recompilation of the documentation
 set(PUBLIC_HEADERS "")
 foreach(dir ${DOXYGEN_INCLUDE_PATHS})
   file(GLOB_RECURSE CURRENT_HEADERS ${dir}/*.h)
@@ -26,11 +26,11 @@ endforeach()
 
 # Add a custom target to run Doxygen when the project is built
 add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
-		DEPENDS ${PUBLIC_HEADERS} Doxyfile.in CMakeLists.txt
-        	COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
-		MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
-        	COMMENT "Generating docs"
-		VERBATIM)
+    DEPENDS ${PUBLIC_HEADERS} Doxyfile.in CMakeLists.txt
+    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
+    MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
+    COMMENT "Generating docs"
+    VERBATIM)
 add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 
 # Add a custom target to generate the documentation with Sphinx
@@ -39,11 +39,11 @@ set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 add_custom_target(Sphinx ALL
                   COMMAND
                   ${CMAKE_COMMAND} -E env
-		  AUTHOR_NAME=${PROJECT_AUTHOR}
-		  PROJECT_NAME=${PROJECT_NAME}
-		  sphinx-build -b html
-		  -D breathe_projects.${PROJECT_NAME}=${DOXYGEN_OUTPUT_DIR}/xml
-                  ${SPHINX_SOURCE} ${SPHINX_BUILD}
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                  AUTHOR_NAME=${PROJECT_AUTHOR}
+                  PROJECT_NAME=${PROJECT_NAME}
+                  sphinx-build -b html
+                  -D breathe_projects.${PROJECT_NAME}=${DOXYGEN_OUTPUT_DIR}/xml
+                  "${SPHINX_SOURCE}" "${SPHINX_BUILD}"
+                  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
                   COMMENT "Generating documentation with Sphinx"
-		  DEPENDS ${DOXYGEN_INDEX_FILE})
+                  DEPENDS ${DOXYGEN_INDEX_FILE})

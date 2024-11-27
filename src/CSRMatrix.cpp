@@ -1,48 +1,58 @@
+// CSRMatrix: Implements the constructor to convert a dense matrix to CSR format.
+// toDense: Converts the CSR matrix to a dense matrix.
+// getNNZ: Returns the number of non-zero elements.
+// getShape: Returns the shape of the matrix.
+
 #include "CSRMatrix.h"
-#include "COOMatrix.h"
+#include <stdexcept>
 
 namespace sparsematrix {
 
-CSRMatrix::CSRMatrix(const std::vector<double>& values, const std::vector<int>& colIndices,
-                     const std::vector<int>& rowPointers, int rows, int cols)
-    : values(values), colIndices(colIndices), rowPointers(rowPointers), rows(rows), cols(cols) {}
-
-SparseMatrix* CSRMatrix::convertTo(const std::string& format) const {
-    if (format == "COO") {
-        return new COOMatrix(values, rowPointers, colIndices, rows, cols);
+CSRMatrix::CSRMatrix(const std::vector<std::vector<double>>& denseMatrix) {
+    numRows = denseMatrix.size();
+    if (numRows == 0) {
+        numCols = 0;
+    } else {
+        numCols = denseMatrix[0].size();
     }
-    return nullptr;
+
+    for (const auto& row : denseMatrix) {
+        if (row.size() != numCols) {
+            throw std::invalid_argument("All rows must have the same number of columns");
+        }
+    }
+
+    rowPtrs.resize(numRows + 1, 0);
+    for (size_t i = 0; i < numRows; ++i) {
+        for (size_t j = 0; j < numCols; ++j) {
+            if (denseMatrix[i][j] != 0) {
+                colIndices.push_back(j);
+                values.push_back(denseMatrix[i][j]);
+                rowPtrs[i + 1]++;
+            }
+        }
+    }
+    for (size_t i = 1; i <= numRows; ++i) {
+        rowPtrs[i] += rowPtrs[i - 1];
+    }
 }
 
 void CSRMatrix::toDense(std::vector<std::vector<double>>& denseMatrix) const {
-    denseMatrix.assign(rows, std::vector<double>(cols, 0));
-    for (int i = 0; i < rows; ++i) {
-        for (int j = rowPointers[i]; j < rowPointers[i + 1]; ++j) {
-            denseMatrix[i][colIndices[j]] = values[j];
+    denseMatrix.clear();
+    denseMatrix.resize(numRows, std::vector<double>(numCols, 0));
+    for (size_t i = 0; i < numRows; ++i) {
+        for (size_t k = rowPtrs[i]; k < rowPtrs[i + 1]; ++k) {
+            denseMatrix[i][colIndices[k]] = values[k];
         }
     }
 }
 
-void CSRMatrix::transpose() {
-    // Transpose logic here
-}
-
-std::pair<int, int> CSRMatrix::getShape() const {
-    return {rows, cols};
-}
-
-int CSRMatrix::getNNZ() const {
+size_t CSRMatrix::getNNZ() const {
     return values.size();
 }
 
-std::vector<double> CSRMatrix::dot(const std::vector<double>& vector) const {
-    std::vector<double> result(rows, 0);
-    for (int i = 0; i < rows; ++i) {
-        for (int j = rowPointers[i]; j < rowPointers[i + 1]; ++j) {
-            result[i] += values[j] * vector[colIndices[j]];
-        }
-    }
-    return result;
+std::pair<size_t, size_t> CSRMatrix::getShape() const {
+    return {numRows, numCols};
 }
 
 } // namespace sparsematrix

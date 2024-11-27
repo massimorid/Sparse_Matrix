@@ -1,3 +1,8 @@
+// CSRMatrix: A class representing a sparse matrix in CSR format.
+// toDense: Converts the CSR matrix to a dense matrix.
+// getNNZ: Returns the number of non-zero elements.
+// getShape: Returns the shape of the matrix.
+
 #ifndef CSRMATRIX_H
 #define CSRMATRIX_H
 
@@ -6,22 +11,19 @@
 namespace sparsematrix {
 
 class CSRMatrix : public SparseMatrix {
-private:
-    std::vector<double> values;
-    std::vector<int> colIndices;
-    std::vector<int> rowPointers;
-    int rows, cols;
-
 public:
-    CSRMatrix(const std::vector<double>& values, const std::vector<int>& colIndices,
-              const std::vector<int>& rowPointers, int rows, int cols);
-    explicit CSRMatrix(const std::vector<std::vector<double>>& denseMatrix);
+    CSRMatrix(const std::vector<std::vector<double>>& denseMatrix);
 
-    SparseMatrix* convertTo(const std::string& format) const override;
     void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
-    void transpose() override;
-    std::pair<int, int> getShape() const override;
-    int getNNZ() const override;
+    size_t getNNZ() const override;
+    std::pair<size_t, size_t> getShape() const override;
+
+private:
+    std::vector<size_t> rowPtrs;
+    std::vector<size_t> colIndices;
+    std::vector<double> values;
+    size_t numRows;
+    size_t numCols;
 };
 
 } // namespace sparsematrix

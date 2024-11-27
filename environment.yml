@@ -1,4 +1,4 @@
-name: cppdev
+name: sparse_matrix_project
 channels:
   - conda-forge
   - defaults

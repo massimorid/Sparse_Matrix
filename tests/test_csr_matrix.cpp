@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 #include "CSRMatrix.h"
-#include "SparseMatrix.h"
+#include "DenseMatrix.h"
 
 using namespace sparsematrix;
 
 TEST(CSRMatrixTest, ConstructionFromDense) {
-    std::vector<std::vector<double>> denseMatrix = {
+    DenseMatrix denseMatrix = {
         {1, 0, 0},
         {0, 2, 3},
         {0, 0, 4}
@@ -17,32 +17,31 @@ TEST(CSRMatrixTest, ConstructionFromDense) {
 }
 
 TEST(CSRMatrixTest, ToDenseConversion) {
-    std::vector<std::vector<double>> denseMatrix = {
+    DenseMatrix denseMatrix = {
         {1, 0, 0},
         {0, 2, 3},
         {0, 0, 4}
     };
     CSRMatrix csr(denseMatrix);
 
-    std::vector<std::vector<double>> convertedDense;
+    DenseMatrix convertedDense;
     csr.toDense(convertedDense);
 
     EXPECT_EQ(convertedDense, denseMatrix);
 }
 
-TEST(CSRMatrixTest, SparseMatrixFromDense) {
-    std::vector<std::vector<double>> denseMatrix = {
-        {1, 0, 0},
-        {0, 2, 0},
-        {3, 0, 4}
+TEST(CSRMatrixTest, EmptyMatrix) {
+    DenseMatrix denseMatrix = {};
+    CSRMatrix csr(denseMatrix);
+
+    EXPECT_EQ(csr.getNNZ(), 0);
+    EXPECT_EQ(csr.getShape(), std::make_pair(0, 0));
+}
+
+TEST(CSRMatrixTest, InvalidInput) {
+    DenseMatrix denseMatrix = {
+        {1, 0},
+        {0, 2, 3}
     };
-
-    SparseMatrix* sparse = SparseMatrix::fromDense(denseMatrix, "CSR");
-    EXPECT_NE(sparse, nullptr);
-
-    auto shape = sparse->getShape();
-    EXPECT_EQ(shape.first, 3);
-    EXPECT_EQ(shape.second, 3);
-
-    delete sparse;
+    EXPECT_THROW(CSRMatrix csr(denseMatrix), std::invalid_argument);
 }
