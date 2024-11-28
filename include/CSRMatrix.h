@@ -36,6 +36,9 @@ public:
     const std::vector<double>& getValues() const { return values; }
 };
 
+// Function to multiply two sparse matrices
+std::vector<std::vector<double>> multiply_sparse_matrices(const CSRMatrix& mat1, const CSRMatrix& mat2);
+
 } // namespace sparsematrix
 
 #endif // CSR_MATRIX_H

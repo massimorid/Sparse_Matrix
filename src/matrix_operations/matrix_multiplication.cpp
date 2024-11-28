@@ -4,6 +4,7 @@
 #include <sstream>
 #include <chrono>
 #include <omp.h>
+#include <filesystem>
 #include "CSRMatrix.h"
 
 // Function to read a dense matrix from a file
@@ -17,14 +18,22 @@ std::vector<std::vector<double>> read_matrix(const std::string& file_path) {
         return matrix;
     }
 
+    std::vector<std::string> lines;
     while (std::getline(file, line)) {
-        std::istringstream iss(line);
+        lines.push_back(line);
+    }
+
+    matrix.resize(lines.size());
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < lines.size(); ++i) {
+        std::istringstream iss(lines[i]);
         std::vector<double> row;
         double value;
         while (iss >> value) {
             row.push_back(value);
         }
-        matrix.push_back(row);
+        matrix[i] = row;
     }
 
     std::cout << "Matrix read from " << file_path << " with dimensions " << matrix.size() << "x" 
@@ -40,56 +49,18 @@ void write_matrix(const std::vector<std::vector<double>>& matrix, const std::str
         return;
     }
 
-    for (const auto& row : matrix) {
-        for (size_t j = 0; j < row.size(); ++j) {
-            file << row[j];
-            if (j < row.size() - 1) {
-                file << " ";
-            }
-        }
-        file << "\n";
-    }
-
-    std::cout << "Matrix written to " << file_path << std::endl;
-}
-
-// Optimized sparse matrix multiplication using CSR format
-std::vector<std::vector<double>> multiply_sparse_matrices(const sparsematrix::CSRMatrix& matrix1, const sparsematrix::CSRMatrix& matrix2) {
-    auto rowPtrs1 = matrix1.getRowPtrs();
-    auto colIndices1 = matrix1.getColIndices();
-    auto values1 = matrix1.getValues();
-
-    auto rowPtrs2 = matrix2.getRowPtrs();
-    auto colIndices2 = matrix2.getColIndices();
-    auto values2 = matrix2.getValues();
-
-    auto [rows1, cols1] = matrix1.getShape();
-    auto [rows2, cols2] = matrix2.getShape();
-
-    if (cols1 != rows2) {
-        throw std::invalid_argument("Error: Matrix dimensions do not match for multiplication.");
-    }
-
-    std::vector<std::vector<double>> result(rows1, std::vector<double>(cols2, 0.0));
-
     #pragma omp parallel for
-    for (size_t i = 0; i < rows1; ++i) {
-        for (size_t k = rowPtrs1[i]; k < rowPtrs1[i + 1]; ++k) {
-            int col_k = colIndices1[k];
-            double val_k = values1[k];
-
-            for (size_t j = rowPtrs2[col_k]; j < rowPtrs2[col_k + 1]; ++j) {
-                int col_j = colIndices2[j];
-                double val_j = values2[j];
-
-                #pragma omp atomic
-                result[i][col_j] += val_k * val_j;
-            }
+    for (size_t i = 0; i < matrix.size(); ++i) {
+        std::ostringstream oss;
+        for (const auto& val : matrix[i]) {
+            oss << val << " ";
+        }
+        oss << "\n";
+        #pragma omp critical
+        {
+            file << oss.str();
         }
     }
-
-    std::cout << "Sparse matrix multiplication completed." << std::endl;
-    return result;
 }
 
 int main() {
@@ -100,8 +71,20 @@ int main() {
     std::string file2 = "src/matrix_generation/output/dense_matrix_2.txt";
     std::string output_file = "src/matrix_operations/output/result_matrix.txt";
 
-    std::vector<std::vector<double>> dense_matrix1 = read_matrix(file1);
-    std::vector<std::vector<double>> dense_matrix2 = read_matrix(file2);
+    std::vector<std::vector<double>> dense_matrix1;
+    std::vector<std::vector<double>> dense_matrix2;
+
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            dense_matrix1 = read_matrix(file1);
+        }
+        #pragma omp section
+        {
+            dense_matrix2 = read_matrix(file2);
+        }
+    }
 
     if (dense_matrix1.empty() || dense_matrix2.empty()) {
         std::cerr << "Error: One of the matrices is empty." << std::endl;
@@ -113,12 +96,11 @@ int main() {
         return 1;
     }
 
-    // Convert dense matrices to CSR format
     sparsematrix::CSRMatrix sparse_matrix1(dense_matrix1);
     sparsematrix::CSRMatrix sparse_matrix2(dense_matrix2);
 
     // Perform sparse matrix multiplication
-    std::vector<std::vector<double>> result_matrix = multiply_sparse_matrices(sparse_matrix1, sparse_matrix2);
+    std::vector<std::vector<double>> result_matrix = sparsematrix::multiply_sparse_matrices(sparse_matrix1, sparse_matrix2);
 
     // Write the result to a file
     write_matrix(result_matrix, output_file);
