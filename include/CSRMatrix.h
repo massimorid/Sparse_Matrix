@@ -17,6 +17,7 @@ public:
     void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
     size_t getNNZ() const override;
     std::pair<size_t, size_t> getShape() const override;
+    double getElement(size_t row, size_t col) const;
 
 private:
     std::vector<size_t> rowPtrs;

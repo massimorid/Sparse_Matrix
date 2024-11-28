@@ -55,4 +55,13 @@ std::pair<size_t, size_t> CSRMatrix::getShape() const {
     return {numRows, numCols};
 }
 
+double CSRMatrix::getElement(size_t row, size_t col) const {
+    for (size_t j = rowPtrs[row]; j < rowPtrs[row + 1]; ++j) {
+        if (colIndices[j] == col) {
+            return values[j];
+        }
+    }
+    return 0.0;
+}
+
 } // namespace sparsematrix

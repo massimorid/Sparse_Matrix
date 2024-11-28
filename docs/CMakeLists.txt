@@ -1,3 +1,5 @@
+# docs/CMakeLists.txt
+
 find_package(Doxygen REQUIRED)
 
 # Directories to look for header files (.h) for the documentation
