@@ -1,8 +1,3 @@
-// CSRMatrix: Implements the constructor to convert a dense matrix to CSR format.
-// toDense: Converts the CSR matrix to a dense matrix.
-// getNNZ: Returns the number of non-zero elements.
-// getShape: Returns the shape of the matrix.
-
 #include "CSRMatrix.h"
 #include <stdexcept>
 
@@ -16,13 +11,16 @@ CSRMatrix::CSRMatrix(const std::vector<std::vector<double>>& denseMatrix) {
         numCols = denseMatrix[0].size();
     }
 
+    // Check for consistent row sizes
     for (const auto& row : denseMatrix) {
         if (row.size() != numCols) {
-            throw std::invalid_argument("All rows must have the same number of columns");
+            throw std::invalid_argument("All rows must have the same number of columns.");
         }
     }
 
     rowPtrs.resize(numRows + 1, 0);
+
+    // Populate the CSR structure
     for (size_t i = 0; i < numRows; ++i) {
         for (size_t j = 0; j < numCols; ++j) {
             if (denseMatrix[i][j] != 0) {
@@ -32,6 +30,8 @@ CSRMatrix::CSRMatrix(const std::vector<std::vector<double>>& denseMatrix) {
             }
         }
     }
+
+    // Convert rowPtrs to cumulative sums
     for (size_t i = 1; i <= numRows; ++i) {
         rowPtrs[i] += rowPtrs[i - 1];
     }
@@ -40,6 +40,7 @@ CSRMatrix::CSRMatrix(const std::vector<std::vector<double>>& denseMatrix) {
 void CSRMatrix::toDense(std::vector<std::vector<double>>& denseMatrix) const {
     denseMatrix.clear();
     denseMatrix.resize(numRows, std::vector<double>(numCols, 0));
+
     for (size_t i = 0; i < numRows; ++i) {
         for (size_t k = rowPtrs[i]; k < rowPtrs[i + 1]; ++k) {
             denseMatrix[i][colIndices[k]] = values[k];

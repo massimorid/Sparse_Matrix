@@ -1,32 +1,41 @@
-// CSRMatrix: A class representing a sparse matrix in CSR format.
-// toDense: Converts the CSR matrix to a dense matrix.
-// getNNZ: Returns the number of non-zero elements.
-// getShape: Returns the shape of the matrix.
+#ifndef CSR_MATRIX_H
+#define CSR_MATRIX_H
 
-#ifndef CSRMATRIX_H
-#define CSRMATRIX_H
-
-#include "SparseMatrix.h"
+#include <vector>
+#include <utility>
 
 namespace sparsematrix {
 
-class CSRMatrix : public SparseMatrix {
-public:
-    CSRMatrix(const std::vector<std::vector<double>>& denseMatrix);
+class CSRMatrix {
+private:
+    size_t numRows; // Number of rows
+    size_t numCols; // Number of columns
+    std::vector<size_t> rowPtrs;    // Row pointers
+    std::vector<size_t> colIndices; // Column indices
+    std::vector<double> values;     // Non-zero values
 
-    void toDense(std::vector<std::vector<double>>& denseMatrix) const override;
-    size_t getNNZ() const override;
-    std::pair<size_t, size_t> getShape() const override;
+public:
+    // Constructor to create a CSR matrix from a dense matrix
+    explicit CSRMatrix(const std::vector<std::vector<double>>& denseMatrix);
+
+    // Converts the CSR matrix back to a dense matrix
+    void toDense(std::vector<std::vector<double>>& denseMatrix) const;
+
+    // Get the number of non-zero elements
+    size_t getNNZ() const;
+
+    // Get the shape of the matrix as {rows, columns}
+    std::pair<size_t, size_t> getShape() const;
+
+    // Get a specific element from the matrix
     double getElement(size_t row, size_t col) const;
 
-private:
-    std::vector<size_t> rowPtrs;
-    std::vector<size_t> colIndices;
-    std::vector<double> values;
-    size_t numRows;
-    size_t numCols;
+    // Public getters for internal attributes
+    const std::vector<size_t>& getRowPtrs() const { return rowPtrs; }
+    const std::vector<size_t>& getColIndices() const { return colIndices; }
+    const std::vector<double>& getValues() const { return values; }
 };
 
 } // namespace sparsematrix
 
-#endif // CSRMATRIX_H
+#endif // CSR_MATRIX_H

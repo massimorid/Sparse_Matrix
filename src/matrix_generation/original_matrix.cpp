@@ -1,85 +1,93 @@
-// src/matrix_generation/original_matrix.cpp
-
 #include <iostream>
 #include <fstream>
 #include <random>
 #include <iomanip>
 #include <omp.h>
 #include <filesystem>
+#include <chrono>
+#include <vector>
 
-void generate_matrix(const std::string& output_file, int rows, int cols, double sparsity) {
-    // Random number generator setup
+// Function to generate a sparse matrix
+std::vector<std::vector<double>> generate_sparse_matrix(int rows, int cols, double sparsity) {
+    // Initialize random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
-    std::uniform_real_distribution<> sparsity_dis(0.0, 1.0);
 
-    // Open output file
-    std::ofstream file(output_file);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file for writing.\n";
-        return;
-    }
+    std::vector<std::vector<double>> matrix(rows, std::vector<double>(cols, 0.0));
 
-    // Generate matrix and write to file
-    std::cout << "Generating and writing matrix to file: " << output_file << std::endl;
-
-    // Use a parallel region to generate the matrix
     #pragma omp parallel
     {
-        // Each thread will have its own random number generator
-        std::random_device rd_thread;
-        std::mt19937 gen_thread(rd_thread());
+        std::mt19937 gen_thread(rd() + omp_get_thread_num());
         std::uniform_real_distribution<> dis_thread(0.0, 1.0);
-        std::uniform_real_distribution<> sparsity_dis_thread(0.0, 1.0);
 
-        // Use a critical section to ensure only one thread writes to the file at a time
         #pragma omp for
         for (int i = 0; i < rows; ++i) {
-            std::ostringstream oss;
             for (int j = 0; j < cols; ++j) {
-                if (sparsity_dis_thread(gen_thread) < sparsity) {
-                    oss << 0.0; // Write zero value
-                } else {
-                    oss << std::fixed << std::setprecision(6) << dis_thread(gen_thread); // Write random value
+                if (dis_thread(gen_thread) >= sparsity) {
+                    matrix[i][j] = dis_thread(gen_thread);
                 }
-                if (j < cols - 1) {
-                    oss << " "; // Add a space between values
-                }
-            }
-            oss << "\n"; // Newline at the end of each row
-
-            #pragma omp critical
-            {
-                file << oss.str();
             }
         }
     }
 
-    file.close();
-    std::cout << "Matrix generation complete. Saved to " << output_file << std::endl;
+    return matrix;
 }
 
-int main() {
-    // Define matrix dimensions
-    const int rows = 500;
-    const int cols = 500;
+// Function to write a matrix to a file
+void write_matrix_to_file(const std::string& output_file, const std::vector<std::vector<double>>& matrix) {
+    std::ofstream file(output_file);
+    if (!file.is_open()) {
+        throw std::runtime_error("Error: Could not open file for writing.");
+    }
 
-    // Define sparsity factor (e.g., 0.95 means 95% of the elements are zero)
-    const double sparsity = 0.95;
+    for (const auto& row : matrix) {
+        for (size_t j = 0; j < row.size(); ++j) {
+            file << std::fixed << std::setprecision(6) << row[j];
+            if (j < row.size() - 1) file << " ";
+        }
+        file << "\n";
+    }
+
+    file.close();
+    std::cout << "Matrix saved to " << output_file << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    // Start timer
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Default matrix dimensions and sparsity
+    int rows = 5000;
+    int cols = 5000;
+    double sparsity = 0.95;
+    std::string output_dir = "src/matrix_generation/output";
+
+    // Parse command-line arguments
+    if (argc > 1) rows = std::stoi(argv[1]);
+    if (argc > 2) cols = std::stoi(argv[2]);
+    if (argc > 3) sparsity = std::stod(argv[3]);
+    if (argc > 4) output_dir = argv[4];
 
     // Ensure the output directory exists
-    std::filesystem::create_directories("src/matrix_generation/output");
+    std::filesystem::create_directories(output_dir);
 
     // Output file names
-    const std::string output_file1 = "src/matrix_generation/output/dense_matrix_40k_1.txt";
-    const std::string output_file2 = "src/matrix_generation/output/dense_matrix_40k_2.txt";
+    const std::string output_file1 = output_dir + "/dense_matrix_1.txt";
+    const std::string output_file2 = output_dir + "/dense_matrix_2.txt";
 
-    // Generate the first matrix
-    generate_matrix(output_file1, rows, cols, sparsity);
+    // Generate and save the first matrix
+    auto matrix1 = generate_sparse_matrix(rows, cols, sparsity);
+    write_matrix_to_file(output_file1, matrix1);
 
-    // Generate the second matrix
-    generate_matrix(output_file2, rows, cols, sparsity);
+    // Generate and save the second matrix
+    auto matrix2 = generate_sparse_matrix(rows, cols, sparsity);
+    write_matrix_to_file(output_file2, matrix2);
+
+    // End timer
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "Total execution time: " << duration.count() << " seconds" << std::endl;
 
     return 0;
 }
