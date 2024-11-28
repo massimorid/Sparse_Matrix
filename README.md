@@ -20,6 +20,7 @@ If you do not have conda installed, I recommend you https://github.com/conda-for
 ### Testing the multiplication before CMake
 
 Confirm if the spare matrices are created in `src/matrix_generation/output` if they are not run:
+
 Windows
 ```bash
 g++ -fopenmp -o matrix_generation src/matrix_generation/original_matrix.cpp
@@ -38,6 +39,7 @@ clang++ -Xpreprocessor -fopenmp \
 ```
 
 Then to perform the multiplications, in the root directory run:
+
 Windows
 ```bash
 g++ -fopenmp -Iinclude -o matrix_multiplication src/matrix_operations/matrix_multiplication.cpp src/CSRMatrix.cpp
