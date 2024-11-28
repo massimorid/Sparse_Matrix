@@ -1,6 +1,6 @@
-## A template for a C++ project with tests and documentation
+## Sparse Matrices
 
-This is an example C++ project that includes tests using GTest and documentation using Doxygen+Sphinx+breathe. The project is built using CMake.
+This is a project that converts Sparse Matrices into CSR Matrices, which are then multiplied and converted back into Sparse.
 
 ### Prerequisites
 
@@ -9,13 +9,26 @@ Install the dependencies using conda:
 ```bash
 conda env create -f environment.yml
 ```
-This will create a conda environment called `cppdev` which you can activate with:
+This will create a conda environment called `sparse_matrix_project` which you can activate with:
 
 ```bash
-conda activate cppdev
+conda activate sparse_matrix_project
 ```
 If you do not have conda installed, I recommend you https://github.com/conda-forge/miniforge .
 **You will have to activate the environment every time you open a new terminal.**
+
+### Testing the multiplication before CMake
+
+Confirm if the spare matrices are created in `src/matrix_generation/output` if they are not run:
+```bash
+g++ -fopenmp -o matrix_generation src/matrix_generation/original_matrix.cpp
+./matrix_generation
+```
+Then to perform the multiplications, in the root directory run:
+```bash
+g++ -fopenmp -Iinclude -o matrix_multiplication src/matrix_operations/matrix_multiplication.cpp src/CSRMatrix.cpp
+./matrix_multiplication
+```
 
 ### Building the project
 
